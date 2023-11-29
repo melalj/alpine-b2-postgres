@@ -5,4 +5,4 @@ RUN apk update \
     && python3 -m pip install --upgrade pip \
     && pip3 install --no-cache-dir b2
 COPY ./backup.sh /backup.sh
-ENTRYPOINT ["/backup.sh"]
+COPY ./restore.sh /restore.sh

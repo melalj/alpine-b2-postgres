@@ -1,30 +1,27 @@
 #!/bin/bash
-
 set -e
 
-# DB_NAME=XXX
-# B2_ACCOUNT_ID=XXX
-# B2_ACCESS_KEY=XXX
-# B2_BUCKET=XXX
-# ARCHIVE_NAME=XXX.sql.gz
-# POSTGRES_HOST=XXX
-# POSTGRES_USER=XXX
-# POSTGRES_PASSWORD=XXX
-# EXTRAFLAGS=
+required_vars="B2_ACCOUNT_ID B2_ACCESS_KEY BACKUP_ARCHIVE_NAME BACKUP_POSTGRES_HOST BACKUP_POSTGRES_PORT BACKUP_POSTGRES_USERNAME BACKUP_POSTGRES_PASSWORD BACKUP_DB_NAME"
 
+for var in $required_vars; do
+	if [ -z "$(eval echo \$$var)" ]; then
+		echo "Error: Environment variable $var is not set."
+		exit 1
+	fi
+done
 
 echo "Authorizing B2 account"
-/usr/local/bin/b2 authorize-account ${B2_ACCOUNT_ID} ${B2_ACCESS_KEY}
+/usr/bin/b2 authorize-account $B2_ACCOUNT_ID $B2_ACCESS_KEY
+
+echo "Dumping Postgres database $BACKUP_DB_NAME to compressed archive..."
+PGPASSWORD=$BACKUP_POSTGRES_PASSWORD /usr/bin/pg_dump $BACKUP_EXTRA_PARAMS -h $BACKUP_POSTGRES_HOST -p $BACKUP_POSTGRES_PORT -U $BACKUP_POSTGRES_USERNAME -d $BACKUP_DB_NAME -v -F t -f $BACKUP_ARCHIVE_NAME $BACKUP_EXTRA_FLAGS
 
 
-echo "Dumping MongoDB databases ${DB_NAME} to compressed archive..."
-PGPASSWORD=$POSTGRES_PASSWORD /usr/bin/pg_dump -h $POSTGRES_HOST -U $POSTGRES_USER $EXTRAFLAGS > $ARCHIVE_NAME
-
-echo "Uploading ${ARCHIVE_NAME} to S3 bucket..."
-/usr/local/bin/b2 upload-file --noProgress --sha1 $(sha1sum $ARCHIVE_NAME | awk '{print $1}') ${B2_BUCKET} $ARCHIVE_NAME $ARCHIVE_NAME
+echo "Uploading $BACKUP_ARCHIVE_NAME to B2 bucket..."
+/usr/bin/b2 upload-file --noProgress --sha1 $(sha1sum $BACKUP_ARCHIVE_NAME | awk '{print $1}') $B2_BUCKET $BACKUP_ARCHIVE_NAME $BACKUP_ARCHIVE_NAME
 
 echo "Cleaning up compressed archive..."
-rm "$ARCHIVE_NAME"
+rm "$BACKUP_ARCHIVE_NAME"
 
 echo "Backup complete!"
 exit 0

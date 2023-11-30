@@ -1,6 +1,6 @@
 # alpine-b2-postgres
 
-Alpine docker image with b2 and postgresql-client with two scripts:
+Alpine docker image with b2 and postgresql16-client with two scripts:
 
 - `./backup.sh`: Backup a postgres database
 - `./restore.sh`: Restore a postgres database

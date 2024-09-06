@@ -4,6 +4,7 @@ Alpine docker image with b2 and postgresql16-client with two scripts:
 
 - `./backup.sh`: Backup a postgres database
 - `./restore.sh`: Restore a postgres database
+- `./thin.sh`: Thin backblaze backup (rotate to keep hourly, daily, weekly, monthly)
 
 ## Environement variables
 
@@ -32,6 +33,13 @@ RESTORE_POSTGRES_PASSWORD=xxx
 RESTORE_DB_NAME=xxx
 RESTORE_EXTRA_PARAMS=
 RESTORE_EXTRA_FLAGS=--clean --if-exists --no-owner --no-privileges --no-acl
+
+# THIN
+THIN_ARCHIVE_NAME=xxx.gz
+KEEP_HOURLY_FOR_IN_HOURS=24
+KEEP_DAILY_FOR_IN_DAYS=30
+KEEP_WEEKLY_FOR_IN_WEEKS=52
+KEEP_MONTHLY_FOR_IN_MONTHS=60
 ```
 
 ## Getting started
@@ -40,8 +48,12 @@ RESTORE_EXTRA_FLAGS=--clean --if-exists --no-owner --no-privileges --no-acl
 # Edit your .env
 
 # Backup
-docker run -it --rm --env-file .env $(docker build -q .) sh /backup.sh
+docker run -it --rm --env-file .env $(docker build -q .) bash /backup.sh
 
 # Restore
-docker run -it --rm --env-file .env $(docker build -q .) sh /restore.sh
+docker run -it --rm --env-file .env $(docker build -q .) bash /restore.sh
+
+# Thin
+docker run -it --rm --env-file .env $(docker build -q .) bash /thin.sh
+
 ```

@@ -23,5 +23,10 @@ echo "Uploading $BACKUP_ARCHIVE_NAME to B2 bucket..."
 echo "Cleaning up compressed archive..."
 rm "$BACKUP_ARCHIVE_NAME"
 
+
+if [ -n "$THIN_ARCHIVE_NAME" ]; then
+	/bin/bash /thin.sh
+fi
+
 echo "Backup complete!"
 exit 0

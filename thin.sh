@@ -15,7 +15,7 @@ KEEP_WEEKLY_FOR_IN_WEEKS=${KEEP_WEEKLY_FOR_IN_WEEKS:-52}
 KEEP_MONTHLY_FOR_IN_MONTHS=${KEEP_MONTHLY_FOR_IN_MONTHS:-60}
 
 echo "Authorizing B2 account"
-/usr/bin/b2 authorize-account $B2_ACCOUNT_ID $B2_ACCESS_KEY
+/usr/local/bin/b2 authorize-account $B2_ACCOUNT_ID $B2_ACCESS_KEY
 
 # Function to delete versions of a file based on retention policy
 delete_versions_based_on_policy() {
@@ -23,7 +23,7 @@ delete_versions_based_on_policy() {
     declare -A seen_hourly seen_daily seen_weekly seen_monthly
 
     # List versions of the file
-    /usr/bin/b2 ls --long --versions "$B2_BUCKET" | awk '{print $3, $4, $1, $6}' | sort -r | while read -r line; do
+    /usr/local/bin/b2 ls --long --versions "$B2_BUCKET" | awk '{print $3, $4, $1, $6}' | sort -r | while read -r line; do
         
         # Extract the date, time, and version info
         local file_date=$(echo $line | awk '{print $1}')
@@ -56,7 +56,7 @@ delete_versions_based_on_policy() {
             else
                 # Subsequent backup for the day, delete it
                 echo "deleting: $file_datetime"
-                /usr/bin/b2 delete_file_version "$THIN_ARCHIVE_NAME" "$file_version_id" > /dev/null
+                /usr/local/bin/b2 delete_file_version "$THIN_ARCHIVE_NAME" "$file_version_id" > /dev/null
                 echo " ok"
             fi
         elif [ $file_age_days -le $KEEP_DAILY_FOR_IN_DAYS ]; then
@@ -68,7 +68,7 @@ delete_versions_based_on_policy() {
             else
                 # Subsequent backup for the day, delete it
                 echo "deleting: $file_datetime"
-                /usr/bin/b2 delete_file_version "$THIN_ARCHIVE_NAME" "$file_version_id" > /dev/null
+                /usr/local/bin/b2 delete_file_version "$THIN_ARCHIVE_NAME" "$file_version_id" > /dev/null
                 echo " ok"
             fi
         elif [ $file_age_days -le $(($KEEP_WEEKLY_FOR_IN_WEEKS * 7)) ]; then
@@ -78,7 +78,7 @@ delete_versions_based_on_policy() {
               seen_weekly[$file_week]=1
             else
                 echo "deleting: $file_datetime"
-                /usr/bin/b2 delete_file_version "$THIN_ARCHIVE_NAME" "$file_version_id" > /dev/null
+                /usr/local/bin/b2 delete_file_version "$THIN_ARCHIVE_NAME" "$file_version_id" > /dev/null
                 echo " ok"
             fi
         elif [ $file_age_days -le $(($KEEP_MONTHLY_FOR_IN_MONTHS * 30)) ]; then
@@ -88,13 +88,13 @@ delete_versions_based_on_policy() {
                 echo "kept(monthly): $file_datetime"
             else
                 echo "deleting: $file_datetime"
-                /usr/bin/b2 delete_file_version "$THIN_ARCHIVE_NAME" "$file_version_id" > /dev/null
+                /usr/local/bin/b2 delete_file_version "$THIN_ARCHIVE_NAME" "$file_version_id" > /dev/null
                 echo " ok"
             fi
         else
             # Delete backups older than KEEP_MONTHLY_FOR_IN_MONTHS months
             echo deleted "$THIN_ARCHIVE_NAME" "$file_datetime"
-            /usr/bin/b2 delete_file_version "$THIN_ARCHIVE_NAME" "$file_version_id" > /dev/null
+            /usr/local/bin/b2 delete_file_version "$THIN_ARCHIVE_NAME" "$file_version_id" > /dev/null
         fi
     done
 }
